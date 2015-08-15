@@ -13,12 +13,15 @@
             var requestNum, _this = this;
             this.handlers.push({});
 
-            requestNum = this.handlers.length;
+            requestNum = this.handlers.length - 1;
             this.promises.push(promise.then(function (data) {
                 if (_this.handlers.length &&
                     _this.handlers[requestNum]) {
-                    _this.handlers[requestNum].exec.apply(this, arguments);
+                    if (angular.isFunction(_this.handlers[requestNum].exec)) {
+                        _this.handlers[requestNum].exec.apply(this, arguments);
+                    }
                 }
+                return data;
             }));
             return this;
         };

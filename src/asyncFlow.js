@@ -11,13 +11,14 @@
 
         Parallel.prototype.get = function (promise) {
             var requestNum, _this = this;
-            this.handlers.push({});
+            this.handlers.push({cancelled: false, exec: null});
 
             requestNum = this.handlers.length - 1;
             this.promises.push(promise.then(function (data) {
                 if (_this.handlers.length &&
                     _this.handlers[requestNum]) {
-                    if (angular.isFunction(_this.handlers[requestNum].exec)) {
+                    if (!_this.handlers[requestNum].cancelled &&
+                        angular.isFunction(_this.handlers[requestNum].exec)) {
                         _this.handlers[requestNum].exec.apply(this, arguments);
                     }
                 }
@@ -36,6 +37,7 @@
             var _this = this;
             return $q.all(this.promises).then(function () {
                 if (_this.handlers.length) {
+                    _this.handlers = [];
                     return handler.apply(null, arguments);
                 }
                 return null;
@@ -43,7 +45,9 @@
         };
 
         Parallel.prototype.cancel = function () {
-            this.handlers = [];
+            angular.forEach(this.handlers, function(handler){
+               handler.cancelled = true;
+            });
         };
 
         return {
